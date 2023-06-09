@@ -1,0 +1,96 @@
+Kako sam dosla do resenja
+
+
+1. from http.server import HTTPServer, BaseHTTPRequestHandler
+- Prvi red koda uvozi dve klase (HTTPServer i BaseHTTPRequestHandler) iz modula http.server. Uvozim ove klase kako bih mogla izgraditi HTTP server i rukovati dolaznim zahtevima. HTTPServer je klasa koja omogcava izgradnju HTTP servera. Moze se koristiti za pokretanje servera na određenoj adresi i portu, i za prihvatanje dolaznih zahteva. BaseHTTPRequestHandler je bazna klasa koju nasledjujemo kako bi implementirali  HTTP zahtev. 
+
+2. from urllib.parse import urlparse, parse_qs
+- Drugi red koda uvozi dve funkcije (urlparse i parse_qs) iz modula urllib.parse. Ove funkcije pruzaju mogucnosti analize URL-ova i parsiranja upita. urlparse funkcija se koristi za analizu URL-a i razdvajanje njegovih komponenti poput sheme, mrezne lokacije, putanje, upita i fragmenta. parse_qs funkcija se koristi za parsiranje upita u URL-u i pretvara ga u recnik.  Upit je deo URL-a koji sledi nakon znaka ? i sastoji se od parova kljuc-vrednost odvojenih znakom &.
+
+4-9. names_dict = {
+    'john': 'smith',
+    'david': 'jones',
+    'michael': 'johnson',
+    'chris': 'lee'
+}
+-  Recnik koji sadrzi parove ključ-vrijednost i sadrzi informacije o imenima i prezimenima 
+
+11-19. class RequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.log_message("Incoming GET request...")
+        parsed_url = urlparse(self.path)
+        query_params = parse_qs(parsed_url.query)
+        if 'name' not in query_params:
+            self.send_response_to_client(400, 'Name parameter missing')
+            self.log_message("Name parameter missing")
+            return
+- Definisem klasu RequestHandler koja nasledjuje klasu BaseHTTPRequestHandler. To znaci da RequestHandler klasa prosiruje funkcionalnosti koje su vec implementirane u BaseHTTPRequestHandler klasi i omogucava  da prilagodim rukovanje HTTP zahteva. Definisana je metoda do_GET(self) u okviru klase RequestHandler. Ova metoda je implementirana iz BaseHTTPRequestHandler klase i poziva se kada stigne GET zahtev na HTTP server. self.log_message("Incoming GET request..."): Ova linija koda zapisuje poruku u zapisnik servera (log) kako bi se evidentirao dolazak GET zahteva. parsed_url = urlparse(self.path): Ovde se koristi funkcija urlparse iz modula urllib.parse kako bi se analizirao self.path. self.path predstavlja putanju koja je sadrzana u GET zahtevu. Koriscenjem urlparse, putanja se parsira i rezultat se sprema u varijablu parsed_url. query_params = parse_qs(parsed_url.query): Ova linija koristi funkciju parse_qs iz modula urllib.parse kako bi se analizirali parametri upita (query parameters) u URL-u. parsed_url.query sadrzi upitni deo URL-a, a parse_qs pretvara te parametre u recnik  i sprema ih u varijablu query_params. if 'name' not in query_params: Ovaj uslov proverava postoji li ključ 'name' u recniku query_params, što bi znacilo da parametar 'name' nije dostupan u upitu. Ako ključ 'name' nije prisutan, tada se izvrsava sledeci blok koda. self.send_response_to_client(400, 'Name parameter missing'): Ova linija poziva metodu send_response_to_client kako bi se poslao odgovor klijentu. Prvi argument je statusni kod, koji u ovom slucaju postavlja status 400 (Bad Request), a drugi argument je poruka koja će biti poslata klijentu. self.log_message("Name parameter missing"): Ova linija zapisuje poruku "Name parameter missing" u zapisnik servera kako bi se evidentiralo da  parametar 'name' nedostaje u zahtevu. return: Ova linija zavrsava izvrsavanje metode do_GET i vraca vrednost.
+
+21-26. name = query_params['name'][0]
+        if name in names_dict:
+            self.send_response_to_client(200, names_dict[name])
+        else:
+            self.send_response_to_client(404, 'Name not found')
+            self.log_message("Name not found")
+- U ovom delu koda, nakon provere postojanja parametra 'name' u URL-u, dobijeno je ime iz query_params recnika i spremljeno u varijablu name. name = query_params['name'][0]: Ova linija koda pretpostavlja da je parametar 'name' prisutan u query_params recniku i izvlaci njegovu vrednost iz recnika. Budući da parse_qs vraća listu vrednosti za svaki ključ, koristim [0] da bih dobila prvi element te liste. if name in names_dict: Ovaj uslov poverava da li postoji name kao kljuc u recniku names_dict. Ako se ime nalazi u recniku, to znaci da je pronadjedno odgovarajuce prezime za to ime. self.send_response_to_client(200, names_dict[name]): Ako se ime nalazi u recniku, tada se poziva metoda send_response_to_client kako bi se poslao uspesan odgovor klijentu sa statusnim kodom 200 (OK) i odgovarajucim prezimenom iz names_dict recnika. else: Ako se ime ne nalazi u recniku, to znaci da prezime nije pronađeno za to ime. u tom slucaju self.send_response_to_client(404, 'Name not found'):  poziva se metoda send_response_to_client kako bi se poslao odgovor klijentu sa statusnim kodom 404 (Not Found) i porukom "Name not found". self.log_message("Name not found"): Ova linija zapisuje poruku "Name not found" u zapisnik servera (log) kako bi se evidentiralo da prezime nije pronađeno za dobijeno ime.
+
+29-34.     def do_POST(self):
+        self.log_message('Incoming POST request...')
+        data = parse_qs(self.path[2:])
+        if 'name' not in data or 'last_name' not in data:
+            self.send_response_to_client(400, 'Incorrect parameters provided')
+            self.log_message("Incorrect parameters provided")
+            return
+- Definisemo metodu do_POST unutar klase RequestHandler koja se poziva kada stigne POST zahtev na HTTP server. self.log_message('Incoming POST request...'): Ova linija zapisuje poruku "Incoming POST request..." u zapisnik servera kako bi se evidentirao dolazak POST zahteva.
+data = parse_qs(self.path[2:]): Ova linija koristi funkciju parse_qs iz modula urllib.parse kako bi se analizirali parametri upita u URL-u. self.path sadrži putanju koja je sadrzana u POST zahtevu. Pomoću parse_qs pretvaramo te parametre u recnik i sprema ih u varijablu data. self.path[2:] koristi se kako bi se preskocio pocetni deo putanje koji obično sadrži znakove // . if 'name' not in data or 'last_name' not in data:: Ovaj uslov proverava jesu li parametri 'name' i 'last_name' prisutni u recniku data. Ako bilo koji od tih parametara nedostaje, tada se izvršava sljedeći blok koda. self.send_response_to_client(400, 'Incorrect parameters provided'): Ova linija poziva metodu send_response_to_client kako bi se poslao odgovor klijentu. Prvi argument je statusni kod, koji je u ovom slucaju 400 (Bad Request), a drugi argument je poruka koja će biti poslata klijentu, a u ovom slucaju je "Incorrect parameters provided". self.log_message("Incorrect parameters provided"): Ova linija zapisuje poruku "Incorrect parameters provided" u zapisnik servera kako bi se evidentiralo da nisu prizeni ispravni parametri u zahtevu. return: Ova linija završava izvršavanje metode do_POST i vraća vrednost
+
+36-39. name = data['name'][0]
+        last_name = data['last_name'][0]
+        names_dict[name] = last_name
+        self.send_response_to_client(200, str(names_dict))
+- U ovom delu koda, nakon provere postojanja parametara 'name' i 'last_name' u POST zahtevu, izvlace se vrednosti tih parametara iz data recnika i spremaju u varijable name i last_name. Zatim se dodaje unos u recnik names_dict, gde je ključ name, a vrednost last_name.
+name = data['name'][0]: Ova linija koda izvlači vrednost parametra 'name' iz recnika data i sprema je u varijablu name. Pretpostavljamo da je 'name' parametar prisutan u data recnmiku i koristimo [0] kako bismo dobili prvi element liste vrednosti.
+last_name = data['last_name'][0]: Ova linija koda izvlači vrednost parametra 'last_name' iz recnika data i sprema je u varijablu last_name. Pretpostavljamo da je 'last_name' parametar prisutan u data rječniku i koristimo [0] kako bismo dobili prvi element liste vrednosti. names_dict[name] = last_name: Ova linija koda dodaje unos u recnik names_dict, gde je kljuc name (iz data['name'][0]) i vrednost je last_name (iz data['last_name'][0]). Time se azurura recnik names_dict s novim unosom.
+self.send_response_to_client(200, str(names_dict)): Ova linija poziva send_response_to_client kako bi se poslao uspesan odgovor klijentu sa statusnim kodom 200 (OK) i sadržajem recnika names_dict. recnik se konvertira u string pomoću str(names_dict) pre slanja odgovora.
+
+41-48.     def do_DELETE(self):
+        self.log_message('Incoming DELETE request...')
+        parsed_url = urlparse(self.path)
+        query_params = parse_qs(parsed_url.query)
+        if 'name' not in query_params:
+            self.send_response_to_client(400, 'Name parameter missing')
+            self.log_message("Name parameter missing")
+            return
+- Ovde je prikazana metoda do_DELETE unutar klase RequestHandler koja se poziva kada stigne DELETE zahtev na HTTP server.
+self.log_message('Incoming DELETE request...'): Ova linija zapisuje poruku "Incoming DELETE request..." u zapisnik servera kako bi se evidentirao dolazak DELETE zahteva.
+parsed_url = urlparse(self.path): Ova linija koristi funkciju urlparse iz modula urllib.parse kako bi se analizirala putanja (self.path) DELETE zahteva. Rezultat je objekt ParseResult koji sadrži različite delove URL-a, kao što su shema, mrezna lokacija, putanja, parametri upita itd.  query_params = parse_qs(parsed_url.query): Ova linija koristi funkciju parse_qs iz modula urllib.parse kako bi se analizirali parametri upita iz parsiranog URL-a. parsed_url.query sadrzi parametre upita iz URL-a, a parse_qs pretvara te parametre u recnik  i sprema ih u varijablu query_params. if 'name' not in query_params:: Ovaj uslov proverava postoji li parametar 'name' u recniku query_params. Ako parametar nije prisutan, tada se izvrsava sledeci blok koda. self.send_response_to_client(400, 'Name parameter missing'): Ova linija poziva metodu send_response_to_client kako bi se poslao odgovor klijentu. Prvi argument je statusni kod, koji je u nasem slucaju 400 (Bad Request), a drugi argument je poruka koja će biti poslata klijentu...
+
+50-56.  name = query_params['name'][0]
+        if name in names_dict:
+            del names_dict[name]
+            self.send_response_to_client(200, 'Name deleted')
+        else:
+            self.send_response_to_client(404, 'Name not found')
+            self.log_message("Name not found")
+- U ovom delu koda, nakon provere postojanja parametra 'name' u DELETE zahtevu, dobijeno ime iz query_params recnika se sprema u varijablu name. name = query_params['name'][0]: Ova linija koda izbvlaci vrednost parametra 'name' iz recnika query_params i sprema je u varijablu name. Pretpostavljamo da je 'name' parametar prisutan u query_params recniku i koristimo [0] kako bismo dobili prvi element liste vrednosti. if name in names_dict: Ovaj uslov proverava da li postoji dobijeno ime (name) kao ključ u recniku names_dict. Ako se ime nalazi u recniku, to znaci da se taj unos moze obrisati. del names_dict[name]: Ova linija koda brise unos iz recnika names_dict koristeci dobijeno ime kao ključ. self.send_response_to_client(200, 'Name deleted'): Ako se ime nalazi u recniku, tada se poziva metoda send_response_to_client kako bi se poslao uspesan odgovor klijentu s statusnim kodom 200 (OK) i porukom "Name deleted". else:: Ako se ime ne nalazi u recniku, to znači da nije pronađen unos za to ime.
+self.send_response_to_client(404, 'Name not found'): U ovom bloku koda poziva se metoda send_response_to_client kako bi se poslao odgovor klijentu sa statusnim kodom 404 (Not Found) i porukom "Name not found".
+self.log_message("Name not found"): Ova linija zapisuje poruku "Name not found" kako bi se evidentiralo da ime nije pronadjeno u recniku.
+Ovim delom koda obrađuje se DELETE zahtev. Ako dobijeno ime postoji u recniku names_dict, tada se taj unos brise iz recnika, a zatim se salje uspesan odgovor s statusnim kodom 200 (OK) i porukom "Name deleted". Ako ime nije pronađeno u recniku, server će vratiti statusni kod 404 (Not Found) i poslati poruku "Name not found".
+
+
+58-65.     def send_response_to_client(self, status_code, data):
+        # Send OK status
+        self.send_response(status_code)
+        # Send headers
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        # Send the response
+        self.wfile.write(data.encode())
+- metoda send_response_to_client koristi se za slanje odgovora klijentu. self.send_response(status_code): Ova linija koda šalje statusni kod kao odgovor klijentu. Statusni kod odredjuje uspesnost ili neuspesnost zahteva . self.send_header('Content-type', 'text/plain'): Ova linija koda salje zaglavlje (header) u odgovoru klijentu. U ovom slucaju, postavlja se Content-type zaglavlje na 'text/plain', sto znaci da se salje obican tekst kao odgovor. self.end_headers(): Ova linija koda zatvara zaglavlje (header) odgovora. To označava da su sva zaglavlja poslata i da sledi telo odgovora. self.wfile.write(data.encode()): Ova linija koda šalje telo odgovora klijentu. self.wfile predstavlja izlazni tok (file-like object) prema klijentu. data je sadržaj koji se salje kao odgovor, ali pre slanja, koristi se encode() metoda za pretvaranje sadržaja u bajtovni oblik, jer HTTP zahtevi i odgovori koriste bajtove za prenos podataka.
+
+67-69. server_address = ('127.0.0.1', 8080)
+http_server = HTTPServer(server_address, RequestHandler)
+http_server.serve_forever()
+- Ovaj deo koda pokrece HTTP server koji ce osluskivati dolazne zahteve na određenoj IP adresi i portu te ce koristiti RequestHandler klasu za obradu tih zahteva. server_address = ('127.0.0.1', 8080): Ova linija koda definise adresu servera na kojoj ce server osluskivati dolazne zahteve. 
+http_server = HTTPServer(server_address, RequestHandler): Ova linija koda stvara instancu HTTPServer klase koja ce koristiti definisanu server_address i RequestHandler klasu za obradu dolaznih zahteva.
+http_server.serve_forever(): Ova linija koda pokreće HTTP server da neprekidno osluškuje dolazne zahteve. 
