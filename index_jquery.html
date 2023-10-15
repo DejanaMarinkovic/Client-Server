@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Management</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <link rel="icon" href="data:,">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>Get Student Info</h2>
+        <div class="form-group">
+            <label for="index">Index:</label>
+            <input type="text" class="form-control" id="index">
+            <button class="btn btn-primary mt-2" onclick="getStudentInfo()">Get Info</button>
+        </div>
+        <p id="info"></p>
+
+        <h2>Add New Student</h2>
+        <div class="form-group">
+            <label for="newIndex">Index:</label>
+            <input type="text" class="form-control" id="newIndex">
+        </div>
+        <div class="form-group">
+            <label for="newName">Name:</label>
+            <input type="text" class="form-control" id="newName">
+        </div>
+        <div class="form-group">
+            <label for="newLastName">Last Name:</label>
+            <input type="text" class="form-control" id="newLastName">
+        </div>
+        <div class="form-group">
+            <label for="newCity">City:</label>
+            <input type="text" class="form-control" id="newCity">
+        </div>
+        <button class="btn btn-success" onclick="addNewStudent()">Add Student</button>
+        <p id="addStatus"></p>
+    </div>
+
+    <script type="text/javascript">
+        function addNewStudent() {
+            var newIndex = $("#newIndex").val();
+            var newName = $("#newName").val();
+            var newLastName = $("#newLastName").val();
+            var newCity = $("#newCity").val();
+
+            $.ajax({
+                url: "http://127.0.0.1:8080/",
+                method: "POST",
+                data: {
+                    index: newIndex,
+                    name: newName,
+                    last_name: newLastName,
+                    city: newCity
+                },
+                success: function(response) {
+                    $("#addStatus").html("Student added successfully.");
+                },
+                error: function(xhr, status, error) {
+                    $("#addStatus").html("Error: " + error);
+                }
+            });
+        }
+
+        function getStudentInfo() {
+            var index = $("#index").val();
+
+            $.ajax({
+                url: "http://127.0.0.1:8080/?index=" + index,
+                method: "GET",
+                success: function(response) {
+                    console.log(response.split("\n"))
+
+                    if (response.length > 0) {
+                        var lista = response.split("\n")
+                        var studentInfo = lista[0] +"<br>"+ lista[1] + "<br>" + lista[2];
+                        $("#info").html(studentInfo);
+                    } else {
+                        $("#info").html("Student not found.");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $("#info").html("Error: " + error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
